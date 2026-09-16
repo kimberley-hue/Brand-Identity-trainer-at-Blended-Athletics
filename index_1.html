@@ -1,0 +1,1361 @@
+<title>Trainer Brand Discovery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@500;700;900&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="questions-data.js"></script>
+
+<style>
+  :root{
+    --black:#000000; --dark:#111B1E; --red:#F41823; --red-dark:#c9111a; --yellow:#F2CD53; --grey:#D9D9D9; --grey-light:#F5F5F5; --white:#FFFFFF;
+    --surface:#FFFFFF; --surface-2:#F6F6F4; --ink:#15181A; --ink-muted:#5c6467; --border:#E1E1DE; --accent:#F41823; --accent-dark:#c9111a;
+    --highlight:#F2CD53; --highlight-ink:#3a2c00;
+    --font-head:"Exo 2", sans-serif; --font-body:"Montserrat", sans-serif;
+    --radius:14px; --radius-sm:8px;
+    --shadow:0 8px 30px rgba(17,27,30,0.10);
+    --maxw:720px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --surface:#111417; --surface-2:#191d20; --ink:#F3F4F2; --ink-muted:#9ba1a4; --border:#2a2f33; --shadow:0 8px 30px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --surface:#111417; --surface-2:#191d20; --ink:#F3F4F2; --ink-muted:#9ba1a4; --border:#2a2f33; --shadow:0 8px 30px rgba(0,0,0,0.5);
+  }
+  *,*::before,*::after{ box-sizing:border-box; }
+  body{ background:var(--surface); color:var(--ink); font-family:var(--font-body); line-height:1.55; -webkit-font-smoothing:antialiased; }
+  h1,h2,h3,h4{ font-family:var(--font-head); font-weight:900; line-height:1.08; margin:0; text-wrap:balance; }
+  p{ margin:0; }
+  button{ font-family:inherit; cursor:pointer; }
+  textarea,input,select{ font-family:inherit; }
+  a{ color:var(--accent); }
+  ::selection{ background:var(--highlight); color:var(--highlight-ink); }
+
+  #root{ min-height:100%; display:flex; flex-direction:column; }
+
+  /* ---- top bar ---- */
+  .appbar{ position:sticky; top:env(safe-area-inset-top,0px); z-index:50; background:var(--surface); border-bottom:1px solid var(--border); }
+  .appbar-inner{ max-width:960px; margin:0 auto; padding:.7rem 1.1rem; display:flex; align-items:center; gap:1rem; }
+  .brandmark{ font-family:var(--font-head); font-weight:900; font-size:.78rem; letter-spacing:.06em; white-space:nowrap; }
+  .brandmark b{ color:var(--accent); }
+  .track{ flex:1; height:6px; border-radius:99px; background:var(--border); overflow:hidden; }
+  .fill{ height:100%; background:var(--accent); width:0%; transition:width 420ms ease; }
+  .pct{ font-size:.72rem; font-weight:700; color:var(--ink-muted); min-width:2.4em; text-align:right; font-variant-numeric:tabular-nums; }
+
+  /* ---- stage ---- */
+  main#stage{ flex:1; width:100%; padding:2.6rem 1.25rem 3rem; }
+  .col{ max-width:var(--maxw); margin:0 auto; }
+  .col-wide{ max-width:900px; margin:0 auto; }
+
+  .eyebrow{ text-transform:uppercase; font-size:.76rem; letter-spacing:.12em; color:var(--accent); font-weight:700; margin-bottom:.6rem; display:block; }
+  .kicker{ color:var(--ink-muted); font-size:.9rem; margin-top:.5rem; }
+
+  /* ---- screen kinds ---- */
+  .screen-invert{ background:var(--black); color:#fff; margin:-2.6rem -1.25rem -3rem; padding:4.2rem 1.25rem 5rem; min-height:calc(100vh - 60px); }
+  .screen-invert .col{ }
+  .screen-invert .kicker, .screen-invert .muted{ color:#b9b9b9; }
+  .screen-invert .eyebrow{ color:var(--red); }
+
+  .hero-num{ font-family:var(--font-head); font-weight:900; font-size:clamp(3.2rem,10vw,6rem); color:var(--red); line-height:.9; margin-bottom:.4rem; }
+  h1.display{ font-size:clamp(2rem,5.4vw,3.1rem); white-space:pre-line; }
+  h2.display{ font-size:clamp(1.5rem,3.6vw,2.15rem); white-space:pre-line; }
+  .lede{ font-size:1.08rem; margin-top:1.1rem; max-width:60ch; }
+  .body-copy p{ margin-bottom:1rem; font-size:1.02rem; }
+  .body-copy p:last-child{ margin-bottom:0; }
+  .screen-invert .body-copy p{ color:#d8d8d8; }
+  .footnote{ margin-top:1.6rem; font-size:.8rem; color:var(--ink-muted); }
+
+  .prompt-num{ font-size:.76rem; font-weight:700; letter-spacing:.08em; color:var(--accent); text-transform:uppercase; margin-bottom:.7rem; display:block; }
+  h2.prompt{ font-size:clamp(1.4rem,3.2vw,1.9rem); margin-bottom:.5rem; }
+  h2.prompt.emphasis{ color:var(--accent); }
+  .helper{ color:var(--ink-muted); font-size:.94rem; margin-top:.5rem; max-width:56ch; }
+
+  .field-wrap{ margin-top:1.8rem; }
+  textarea.input, input.input{ width:100%; background:var(--surface-2); border:2px solid var(--border); border-radius:var(--radius-sm); padding:.9rem 1rem; font-size:1.02rem; color:var(--ink); transition:border-color 160ms ease; }
+  textarea.input{ min-height:150px; resize:vertical; line-height:1.5; }
+  textarea.input:focus, input.input:focus{ outline:none; border-color:var(--accent); }
+
+  .option-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:.7rem; margin-top:1.6rem; }
+  .option-grid.narrow{ grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); }
+  .opt-card{ text-align:left; background:var(--surface-2); border:2px solid var(--border); border-radius:var(--radius-sm); padding:.95rem 1.05rem; font-weight:700; font-size:.92rem; color:var(--ink); transition:border-color 140ms ease, background 140ms ease; }
+  .opt-card:hover{ border-color:var(--accent); }
+  .opt-card.selected{ border-color:var(--accent); background:rgba(244,24,35,.09); color:var(--accent-dark); }
+  :root[data-theme="dark"] .opt-card.selected{ color:var(--red); }
+  @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .opt-card.selected{ color:var(--red); } }
+
+  .scale-wrap{ margin-top:2rem; }
+  .scale-labels{ display:flex; justify-content:space-between; font-size:.76rem; font-weight:700; letter-spacing:.04em; color:var(--ink-muted); margin-bottom:.5rem; }
+  input[type=range]{ width:100%; accent-color:var(--red); height:6px; }
+  .scale-val{ text-align:center; font-family:var(--font-head); font-weight:900; font-size:1.6rem; color:var(--accent); margin-top:.4rem; }
+
+  .spectrum-item{ margin-bottom:1.7rem; }
+  .spectrum-item .scale-labels span{ max-width:44%; }
+
+  .other-input{ margin-top:.8rem; }
+
+  /* ---- footer nav ---- */
+  .navbar{ position:sticky; bottom:env(safe-area-inset-bottom,0px); z-index:50; background:var(--surface); border-top:1px solid var(--border); }
+  .navbar-inner{ max-width:960px; margin:0 auto; padding:.85rem 1.1rem; display:flex; align-items:center; gap:.8rem; }
+  .btn{ font-family:var(--font-body); font-weight:700; font-size:.92rem; padding:.85rem 1.5rem; border-radius:var(--radius-sm); border:2px solid transparent; transition:transform 140ms ease, opacity 140ms ease; }
+  .btn:active{ transform:translateY(1px); }
+  .btn-primary{ background:var(--accent); color:#fff; margin-left:auto; }
+  .btn-primary:hover{ background:var(--accent-dark); }
+  .btn-primary:disabled{ opacity:.35; cursor:not-allowed; }
+  .btn-secondary{ background:transparent; color:var(--ink); border-color:var(--border); }
+  .btn-secondary:hover{ border-color:var(--ink); }
+  .btn-ghost{ background:transparent; color:var(--accent); border-color:var(--accent); }
+  .btn-ghost:hover{ background:var(--accent); color:#fff; }
+  .btn-invert{ background:#fff; color:#000; }
+  .btn-invert:hover{ background:var(--yellow); }
+  .saved-pill{ font-size:.74rem; color:var(--ink-muted); font-weight:600; white-space:nowrap; }
+  .saved-pill.saving::before{ content:"● "; color:var(--yellow); }
+  .saved-pill.saved::before{ content:"✓ "; color:#1a9c4a; }
+
+  /* ---- cards / avatar recap / reflection ---- */
+  .card{ background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius); padding:1.3rem 1.4rem; }
+  .avatar-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1rem; margin-top:1.6rem; }
+  .avatar-card h4{ font-family:var(--font-head); font-weight:900; font-size:.85rem; color:var(--accent); text-transform:uppercase; letter-spacing:.04em; margin-bottom:.5rem; }
+  .avatar-card p{ font-size:.92rem; color:var(--ink-muted); }
+
+  .reflect-list{ margin-top:1.6rem; display:flex; flex-direction:column; gap:.9rem; }
+  .reflect-row{ background:var(--surface-2); border-left:4px solid var(--accent); border-radius:0 var(--radius-sm) var(--radius-sm) 0; padding:.8rem 1.1rem; }
+  .reflect-row .rl{ font-size:.72rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); margin-bottom:.3rem; }
+  .reflect-row .rv{ font-size:.95rem; }
+  .screen-invert .reflect-row{ background:#161616; border-left-color:var(--red); }
+
+  .flow-viz{ display:grid; grid-template-columns:1fr auto 1fr auto 1fr; gap:.7rem; align-items:stretch; margin-top:2rem; }
+  .flow-col{ background:var(--surface-2); border-radius:var(--radius-sm); padding:1rem; font-size:.88rem; }
+  .flow-col h4{ font-family:var(--font-head); font-size:.75rem; letter-spacing:.06em; color:var(--accent); margin-bottom:.5rem; }
+  .flow-arrow{ align-self:center; color:var(--ink-muted); font-size:1.3rem; }
+  @media (max-width:640px){ .flow-viz{ grid-template-columns:1fr; } .flow-arrow{ transform:rotate(90deg); } }
+
+  .chip-row{ display:flex; flex-wrap:wrap; gap:.5rem; margin-top:1rem; }
+  .chip{ background:var(--surface-2); border:1px solid var(--border); border-radius:99px; padding:.35rem .85rem; font-size:.82rem; font-weight:600; }
+  .screen-invert .chip{ background:#1a1a1a; border-color:#333; color:#eee; }
+
+  .quote-box{ background:var(--yellow); color:var(--highlight-ink); border-radius:var(--radius); padding:1.3rem 1.5rem; margin-top:1.4rem; font-weight:700; font-size:1.05rem; }
+
+  .sentence-blank{ display:inline-flex; flex-direction:column; margin:.3rem .2rem; vertical-align:bottom; }
+  .sentence-blank label{ font-size:.68rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:.25rem; }
+  .sentence-blank input{ min-width:220px; }
+  .sentence-preview{ margin-top:2rem; background:var(--surface-2); border-radius:var(--radius); padding:1.4rem; font-family:var(--font-head); font-weight:700; font-size:1.2rem; line-height:1.5; }
+  .sentence-preview .fill{ color:var(--accent); background:none; }
+
+  /* ---- checkpoint / synthesis / review ---- */
+  .cp-field{ margin-top:1.3rem; }
+  .cp-field label{ font-size:.74rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--red); display:block; margin-bottom:.4rem; }
+  .cp-field textarea{ width:100%; background:#151515; border:2px solid #2c2c2c; color:#fff; border-radius:var(--radius-sm); padding:.8rem; min-height:70px; font-size:.95rem; }
+  .cp-field textarea:focus{ outline:none; border-color:var(--red); }
+  .decision-row{ display:flex; flex-direction:column; gap:.6rem; margin-top:2rem; }
+  .decision-btn{ background:transparent; border:2px solid #3a3a3a; color:#fff; padding:1rem 1.2rem; border-radius:var(--radius-sm); text-align:left; font-weight:700; font-size:.95rem; }
+  .decision-btn:hover{ border-color:var(--red); }
+
+  .think{ display:flex; align-items:center; gap:.7rem; color:#ddd; font-weight:600; margin-top:2rem; }
+  .think .dot{ width:9px; height:9px; border-radius:50%; background:var(--red); animation:pulse 1.1s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{ opacity:.3 } 50%{ opacity:1 } }
+
+  .blueprint-cover{ text-align:center; padding:3rem 0; }
+  .bp-section{ margin-top:3rem; padding-top:2.2rem; border-top:1px solid var(--border); }
+  .bp-section h3{ font-size:1.3rem; color:var(--accent); margin-bottom:1rem; }
+  .bp-block{ margin-bottom:1.1rem; }
+  .bp-block .bl{ font-size:.72rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-muted); margin-bottom:.3rem; }
+  .bp-block .bv{ font-size:.98rem; white-space:pre-line; }
+  .bp-list li{ margin-bottom:.4rem; }
+  .review-actions{ display:flex; flex-wrap:wrap; gap:.6rem; margin:2rem 0; padding:1.2rem; background:var(--surface-2); border-radius:var(--radius); }
+  .refine-panel{ margin-top:1rem; padding:1.2rem; background:var(--surface-2); border-radius:var(--radius); display:none; }
+  .refine-panel.open{ display:block; }
+  select.input{ width:100%; background:var(--surface-2); border:2px solid var(--border); border-radius:var(--radius-sm); padding:.7rem .9rem; font-size:.95rem; color:var(--ink); }
+
+  .leadership-link{ position:fixed; top:calc(env(safe-area-inset-top,0px) + .6rem); right:.9rem; z-index:60; font-size:.72rem; font-weight:700; color:var(--ink-muted); background:var(--surface); border:1px solid var(--border); padding:.4rem .7rem; border-radius:99px; }
+  .lead-table{ width:100%; border-collapse:collapse; margin-top:1.5rem; }
+  .lead-table th,.lead-table td{ text-align:left; padding:.7rem .5rem; border-bottom:1px solid var(--border); font-size:.9rem; }
+  .status-badge{ font-size:.7rem; font-weight:700; padding:.2rem .55rem; border-radius:99px; background:var(--surface-2); }
+  .status-badge.approved{ background:var(--accent); color:#fff; }
+
+  @media print{ .appbar,.navbar,.review-actions,.leadership-link{ display:none !important; } }
+</style>
+
+<div id="root">
+  <div class="appbar" id="appbar" hidden>
+    <div class="appbar-inner">
+      <div class="brandmark">BLENDED <b>ATHLETICS</b></div>
+      <div class="track"><div class="fill" id="progressFill"></div></div>
+      <div class="pct" id="progressPct">0%</div>
+    </div>
+  </div>
+
+  <main id="stage"><div class="col">Loading…</div></main>
+
+  <div class="navbar" id="navbar" hidden>
+    <div class="navbar-inner">
+      <button class="btn btn-secondary" id="btnBack">BACK</button>
+      <span class="saved-pill" id="savedPill"></span>
+      <button class="btn btn-primary" id="btnNext">CONTINUE</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ============================= helpers ============================= */
+  function h(tag, attrs, ...kids){
+    const e = document.createElement(tag);
+    attrs = attrs || {};
+    for (const k in attrs){
+      const v = attrs[k];
+      if (v == null) continue;
+      if (k === "class") e.className = v;
+      else if (k === "html") e.innerHTML = v;
+      else if (k === "style") Object.assign(e.style, v);
+      else if (k.slice(0,2) === "on") e.addEventListener(k.slice(2), v);
+      else e.setAttribute(k, v);
+    }
+    for (const c of kids.flat(Infinity)){
+      if (c == null || c === false) continue;
+      e.appendChild(typeof c === "string" || typeof c === "number" ? document.createTextNode(c) : c);
+    }
+    return e;
+  }
+  function slugify(s){
+    return (s||"").toString().toLowerCase().trim()
+      .replace(/[^a-z0-9\s-]/g,"").replace(/\s+/g,"-").replace(/-+/g,"-").slice(0,80) || "trainer";
+  }
+  function truncate(s, n){
+    s = (s||"").toString().trim();
+    if (s.length <= n) return s;
+    return s.slice(0, n - 1).trim() + "…";
+  }
+  function byteLen(s){ return new TextEncoder().encode(s).length; }
+  function fmtDate(d){
+    try { return new Date(d).toLocaleDateString(undefined, {year:"numeric", month:"long", day:"numeric"}); }
+    catch(e){ return ""; }
+  }
+  function humanize(key){
+    return key.replace(/([A-Z])/g," $1").replace(/^./, c=>c.toUpperCase()).trim();
+  }
+
+  /* ============================= data ============================= */
+  const D = window.DISCOVERY;
+  const FLOW = [...D.opening, ...D.sections.flatMap(s => s.screens), D.checkpoint, D.synthesisIntro];
+  const FLOW_BY_ID = new Map(FLOW.map(s => [s.id, s]));
+  const QUESTIONS_BY_ID = new Map(FLOW.filter(s => s.kind === "question").map(s => [s.id, s]));
+
+  /* ============================= state ============================= */
+  const state = {
+    phase: "welcome",          // welcome -> flow -> synthesizing -> review -> approved | leadership
+    currentId: "welcome",
+    trainerName: "",
+    trainerEmail: "",
+    isTeamMember: null,
+    slug: "",
+    answers: {},
+    checkpoint: null,
+    checkpointDecision: null,
+    blueprint: null,
+    approved: false,
+    createdAt: null,
+    savedDirty: false,
+    leadershipList: null,
+    readOnly: false
+  };
+
+  let db = null, sampleFn = null, downloads = null;
+  let saveTimer = null;
+
+  /* ============================= conditional / visibility ============================= */
+  function evalCond(cond){
+    if (!cond) return true;
+    const v = state.answers[cond.questionId];
+    if (cond.op === "equals") return v === cond.value;
+    if (cond.op === "filled") return v !== undefined && v !== null && (Array.isArray(v) ? v.length>0 : String(v).trim().length>0);
+    return true;
+  }
+  function isVisible(scr){
+    if (scr.conditional && !evalCond(scr.conditional)) return false;
+    return true;
+  }
+  function visibleFlow(){ return FLOW.filter(isVisible); }
+
+  /* ============================= persistence ============================= */
+  async function initCapabilities(){
+    try { db = await window.claude.use("db"); } catch(e){ db = null; }
+    try { sampleFn = await window.claude.use("sample"); } catch(e){ sampleFn = null; }
+    try { downloads = await window.claude.use("downloads"); } catch(e){ downloads = null; }
+  }
+
+  function docRef(){ return db.doc("trainers/" + state.slug); }
+
+  async function loadExisting(slug){
+    if (!db) return null;
+    try {
+      const snap = await db.doc("trainers/" + slug).get();
+      return snap.exists ? snap.data() : null;
+    } catch(e){ return null; }
+  }
+
+  function scheduleSave(){
+    state.savedDirty = true;
+    setSavedPill("saving");
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(doSave, 900);
+  }
+
+  async function doSave(immediate){
+    if (!db || !state.slug) return;
+    try {
+      await docRef().set({
+        trainerName: state.trainerName,
+        trainerEmail: state.trainerEmail || "",
+        isTeamMember: state.isTeamMember === true,
+        slug: state.slug,
+        createdAt: state.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        lastScreenId: state.currentId,
+        status: state.approved ? "approved" : (state.blueprint ? "review" : (state.checkpoint ? "checkpoint" : "in_progress")),
+        answers: state.answers,
+        checkpoint: state.checkpoint,
+        checkpointDecision: state.checkpointDecision,
+        blueprint: state.blueprint,
+        approved: state.approved
+      });
+      state.savedDirty = false;
+      setSavedPill("saved");
+    } catch(e){ /* best effort */ }
+  }
+
+  function setSavedPill(kind){
+    const el = document.getElementById("savedPill");
+    if (!el) return;
+    el.className = "saved-pill " + (kind||"");
+    el.textContent = kind === "saving" ? "Saving…" : kind === "saved" ? "Saved" : "";
+  }
+
+  /* ============================= navigation ============================= */
+  function currentScreen(){ return FLOW_BY_ID.get(state.currentId); }
+
+  function idxInVisible(id){ return visibleFlow().findIndex(s => s.id === id); }
+
+  function goTo(id){
+    state.currentId = id;
+    render();
+    window.scrollTo({top:0, behavior:"instant" in window ? "instant" : "auto"});
+    if (state.slug) scheduleSave();
+  }
+
+  function next(){
+    const vf = visibleFlow();
+    let i = idxInVisible(state.currentId);
+    if (i === -1) i = 0;
+    if (i + 1 < vf.length) goTo(vf[i+1].id);
+    else enterCheckpointOrSynthesis();
+  }
+  function back(){
+    const vf = visibleFlow();
+    const i = idxInVisible(state.currentId);
+    if (i > 0) goTo(vf[i-1].id);
+  }
+
+  function enterCheckpointOrSynthesis(){
+    // reaching the end of the FLOW array itself; last item is synthesisIntro static screen,
+    // its own CTA triggers synthesis (handled in renderStatic for that id).
+  }
+
+  /* ============================= required / continue gating ============================= */
+  function isAnswered(qid){
+    const v = state.answers[qid];
+    if (v === undefined || v === null) return false;
+    if (Array.isArray(v)) return v.length > 0;
+    return String(v).trim().length > 0;
+  }
+  function canContinue(scr){
+    if (scr.kind === "question") return !scr.required || isAnswered(scr.id);
+    if (scr.kind === "sentence") return scr.blanks.every(b => isAnswered(b.id));
+    if (scr.kind === "identify") return identifyFormValid();
+    return true;
+  }
+
+  /* ============================= renderers: shell ============================= */
+  function render(){
+    const scr = currentScreen();
+    if (!scr) return;
+    document.getElementById("appbar").hidden = false;
+    document.getElementById("navbar").hidden = false;
+    updateProgress();
+    const stage = document.getElementById("stage");
+    stage.innerHTML = "";
+    stage.className = "";
+    const invert = ["intro","checkpoint"].includes(scr.kind) || scr.id === "synthesis_intro";
+    stage.appendChild(renderScreenNode(scr, invert));
+    wireFooter(scr);
+  }
+
+  function updateProgress(){
+    const vf = visibleFlow();
+    const i = Math.max(0, idxInVisible(state.currentId));
+    const pct = Math.round(((i+1) / vf.length) * 100);
+    document.getElementById("progressFill").style.width = pct + "%";
+    document.getElementById("progressPct").textContent = pct + "%";
+  }
+
+  function wireFooter(scr){
+    const back$ = document.getElementById("btnBack");
+    const next$ = document.getElementById("btnNext");
+    const vf = visibleFlow();
+    const i = idxInVisible(scr.id);
+    back$.style.visibility = i <= 0 ? "hidden" : "visible";
+    back$.onclick = back;
+
+    if (scr.id === "welcome"){
+      document.getElementById("navbar").hidden = true;
+      document.getElementById("appbar").hidden = true;
+      return;
+    }
+    document.getElementById("navbar").hidden = false;
+    document.getElementById("appbar").hidden = false;
+    next$.style.display = "";
+
+    if (scr.id === "synthesis_intro"){
+      next$.textContent = "BUILD MY BRAND BLUEPRINT";
+      next$.disabled = false;
+      next$.onclick = beginSynthesis;
+      return;
+    }
+    if (scr.kind === "checkpoint"){
+      next$.style.display = "none";
+      return;
+    }
+    if (scr.id === "s00_reflection"){
+      next$.style.display = "none";
+      return;
+    }
+    if (scr.kind === "identify"){
+      next$.textContent = "CONTINUE";
+      next$.disabled = !document.getElementById("nameInput") || !identifyFormValid();
+      next$.onclick = handleIdentifyContinue;
+      return;
+    }
+
+    next$.textContent = scr.cta || "CONTINUE";
+    next$.disabled = !canContinue(scr);
+    next$.onclick = next;
+  }
+
+  /* ============================= renderers: per kind ============================= */
+  function renderScreenNode(scr, invert){
+    let inner;
+    switch(scr.kind){
+      case "welcome": inner = renderWelcome(scr); break;
+      case "identify": inner = renderIdentify(scr); break;
+      case "static": inner = renderStatic(scr); break;
+      case "intro": inner = renderIntro(scr); break;
+      case "question": inner = renderQuestion(scr); break;
+      case "reflection": inner = renderReflection(scr); break;
+      case "spectrumset": inner = renderSpectrumSet(scr); break;
+      case "sentence": inner = renderSentence(scr); break;
+      case "checkpoint": inner = renderCheckpoint(scr); break;
+      default: inner = h("div", {class:"col"}, "…");
+    }
+    if (invert && scr.kind !== "checkpoint"){
+      const wrap = h("div", {class:"screen-invert"}, inner);
+      return wrap;
+    }
+    return inner;
+  }
+
+  function renderWelcome(scr){
+    return h("div", {class:"screen-invert"},
+      h("div", {class:"col"},
+        h("button", {class:"leadership-link", onclick:openLeadership}, "LEADERSHIP: VIEW ALL BLUEPRINTS"),
+        h("span", {class:"eyebrow"}, scr.eyebrow),
+        h("h1", {class:"display"}, scr.heading),
+        h("p", {class:"lede", style:{color:"#e8e8e8", fontWeight:"700", marginTop:"1rem", fontFamily:"var(--font-head)"}}, scr.sub),
+        h("div", {class:"body-copy", style:{marginTop:"1.6rem"}}, scr.body.map(p => h("p", null, p))),
+        h("div", {style:{marginTop:"2.2rem"}},
+          h("button", {class:"btn btn-invert", style:{fontSize:"1rem",padding:"1rem 1.9rem"}, onclick:()=>{ state.currentId="identify"; render(); }}, scr.cta)
+        ),
+        h("div", {class:"footnote"}, scr.footnote)
+      )
+    );
+  }
+
+  function isValidEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((v||"").trim()); }
+
+  function identifyFormValid(){
+    const name = (document.getElementById("nameInput")||{}).value || "";
+    const email = (document.getElementById("emailInput")||{}).value || "";
+    return name.trim().length >= 2 && isValidEmail(email) && (state.isTeamMember === true || state.isTeamMember === false);
+  }
+
+  function renderIdentify(scr){
+    const teamRow = h("div", {class:"option-grid narrow", id:"teamRow"},
+      ["YES", "NO"].map(opt=>{
+        const selected = (state.isTeamMember === true && opt==="YES") || (state.isTeamMember === false && opt==="NO");
+        return h("button", {class:"opt-card" + (selected?" selected":""), onclick:(e)=>{
+          state.isTeamMember = (opt === "YES");
+          document.querySelectorAll("#teamRow .opt-card").forEach(b=>b.classList.remove("selected"));
+          e.currentTarget.classList.add("selected");
+          document.getElementById("btnNext").disabled = !identifyFormValid();
+        }}, opt);
+      })
+    );
+    const wrap = h("div", {class:"col"},
+      h("span", {class:"eyebrow"}, "BEFORE WE START"),
+      h("h1", {class:"display"}, scr.heading),
+      h("div", {class:"body-copy", style:{marginTop:"1rem"}}, scr.body.map(p=>h("p",null,p))),
+      h("div", {class:"field-wrap"},
+        h("input", {class:"input", id:"nameInput", type:"text", placeholder:"Your full name", value: state.trainerName || "",
+          oninput:()=>{ document.getElementById("btnNext").disabled = !identifyFormValid(); },
+          onkeydown:(e)=>{ if(e.key==="Enter"){ e.preventDefault(); document.getElementById("emailInput").focus(); } }
+        })
+      ),
+      h("div", {class:"field-wrap", style:{marginTop:"1.1rem"}},
+        h("input", {class:"input", id:"emailInput", type:"email", placeholder:"Your email address", value: state.trainerEmail || "",
+          oninput:()=>{ document.getElementById("btnNext").disabled = !identifyFormValid(); },
+          onkeydown:(e)=>{ if(e.key==="Enter"){ e.preventDefault(); handleIdentifyContinue(); } }
+        })
+      ),
+      h("div", {class:"field-wrap", style:{marginTop:"1.4rem"}},
+        h("p", {class:"helper", style:{marginTop:0, marginBottom:".6rem"}}, "Are you a current Blended Athletics team member?"),
+        teamRow
+      ),
+      h("div", {id:"identifyMsg", class:"helper"}, "")
+    );
+    return wrap;
+  }
+
+  async function handleIdentifyContinue(){
+    if (!identifyFormValid()) return;
+    const val = document.getElementById("nameInput").value.trim();
+    const email = document.getElementById("emailInput").value.trim();
+    const isTeamMember = state.isTeamMember;
+    const msg = document.getElementById("identifyMsg");
+    const btn = document.getElementById("btnNext");
+    btn.disabled = true;
+    const slug = slugify(val);
+    if (db){
+      msg.textContent = "Checking for saved progress…";
+      const existing = await loadExisting(slug);
+      if (existing && existing.answers && Object.keys(existing.answers).length){
+        msg.innerHTML = "";
+        msg.appendChild(h("div", {class:"card", style:{marginTop:"1rem"}},
+          h("p", null, "Welcome back, " + existing.trainerName + ". We found saved progress from " + fmtDate(existing.updatedAt) + "."),
+          h("div", {style:{display:"flex",gap:".6rem",marginTop:"1rem",flexWrap:"wrap"}},
+            h("button", {class:"btn btn-primary", style:{marginLeft:"0"}, onclick:()=>resumeExisting(existing)}, "RESUME WHERE I LEFT OFF"),
+            h("button", {class:"btn btn-secondary", onclick:()=>startFresh(slug, val, email, isTeamMember)}, "START OVER")
+          )
+        ));
+        btn.disabled = false;
+        return;
+      }
+    }
+    startFresh(slug, val, email, isTeamMember);
+  }
+
+  function resumeExisting(doc){
+    state.trainerName = doc.trainerName;
+    state.trainerEmail = doc.trainerEmail || "";
+    state.isTeamMember = typeof doc.isTeamMember === "boolean" ? doc.isTeamMember : null;
+    state.slug = doc.slug;
+    state.answers = doc.answers || {};
+    state.checkpoint = doc.checkpoint || null;
+    state.checkpointDecision = doc.checkpointDecision || null;
+    state.blueprint = doc.blueprint || null;
+    state.approved = !!doc.approved;
+    state.createdAt = doc.createdAt;
+    const target = doc.lastScreenId && FLOW_BY_ID.has(doc.lastScreenId) ? doc.lastScreenId : (D.opening[2] ? D.opening[2].id : "before_we_begin");
+    if (state.approved || state.blueprint) { enterReview(); return; }
+    goTo(target);
+  }
+
+  function startFresh(slug, name, email, isTeamMember){
+    state.trainerName = name;
+    state.trainerEmail = email;
+    state.isTeamMember = isTeamMember;
+    state.slug = slug;
+    state.createdAt = new Date().toISOString();
+    goTo("before_we_begin");
+  }
+
+  function renderStatic(scr){
+    const kids = [
+      h("h2", {class:"display"}, scr.heading),
+      h("div", {class:"body-copy", style:{marginTop:"1.2rem"}}, (scr.body||[]).map(p=>h("p",null,p)))
+    ];
+    if (scr.showAvatars){
+      const cards = [1,2,3].map(i => {
+        const who = state.answers["s03_a"+i+"_who"];
+        if (!who) return null;
+        return h("div", {class:"card avatar-card"},
+          h("h4", null, "GROUP " + i),
+          h("p", null, truncate(who, 180))
+        );
+      }).filter(Boolean);
+      kids.push(h("div", {class:"avatar-grid"}, cards));
+      if (!cards.length){
+        kids.push(h("p", {class:"helper"}, "No groups answered yet."));
+      }
+    }
+    if (scr.skipTo){
+      kids.push(h("div", {style:{marginTop:"1.6rem"}},
+        h("button", {class:"btn btn-ghost", onclick:()=>goTo(scr.skipTo)}, scr.skipLabel || "SKIP")
+      ));
+    }
+    return h("div", {class:"col"}, kids);
+  }
+
+  function renderIntro(scr){
+    return h("div", {class:"col"},
+      h("div", {class:"hero-num"}, scr.number),
+      h("h1", {class:"display"}, scr.title),
+      h("div", {class:"body-copy", style:{marginTop:"1.2rem"}}, (scr.body||[]).map(p=>h("p",null,p)))
+    );
+  }
+
+  function renderQuestion(scr){
+    const kids = [
+      h("span", {class:"prompt-num"}, "SECTION " + scr.section),
+      h("h2", {class:"prompt" + (scr.emphasis?" emphasis":"")}, scr.prompt),
+    ];
+    if (scr.helper) kids.push(h("p", {class:"helper"}, scr.helper));
+    kids.push(renderInput(scr));
+    return h("div", {class:"col"}, kids);
+  }
+
+  function renderInput(scr){
+    const val = state.answers[scr.id];
+    if (scr.type === "textarea"){
+      return h("div", {class:"field-wrap"},
+        h("textarea", {class:"input", id:"f_"+scr.id, placeholder:"Type your answer…",
+          oninput:(e)=>{ state.answers[scr.id]=e.target.value; document.getElementById("btnNext").disabled=!canContinue(scr); scheduleSave(); }
+        }, val||"")
+      );
+    }
+    if (scr.type === "text"){
+      return h("div", {class:"field-wrap"},
+        h("input", {class:"input", type:"text", id:"f_"+scr.id, value: val||"",
+          oninput:(e)=>{ state.answers[scr.id]=e.target.value; document.getElementById("btnNext").disabled=!canContinue(scr); scheduleSave(); }
+        })
+      );
+    }
+    if (scr.type === "select"){
+      return h("div", {class:"option-grid"}, scr.options.map(opt => {
+        const selected = val === opt;
+        return h("button", {class:"opt-card" + (selected?" selected":""), onclick:(e)=>{
+          state.answers[scr.id] = opt;
+          document.querySelectorAll(".opt-card").forEach(b=>b.classList.remove("selected"));
+          e.currentTarget.classList.add("selected");
+          document.getElementById("btnNext").disabled=!canContinue(scr);
+          scheduleSave();
+          rerenderConditionalFollowers();
+        }}, opt);
+      }));
+    }
+    if (scr.type === "select_dynamic"){
+      const opts = scr.optionsFrom
+        .map((qid, i) => ({ value:String(i+1), label:"Group " + (i+1) + ": " + truncate(state.answers[qid]||"", 60), filled: isAnswered(qid) }))
+        .filter(o => o.filled);
+      return h("div", {class:"option-grid narrow", style:{gridTemplateColumns:"1fr"}}, opts.map(o=>{
+        const selected = val === o.value;
+        return h("button", {class:"opt-card" + (selected?" selected":""), onclick:(e)=>{
+          state.answers[scr.id] = o.value;
+          document.querySelectorAll(".opt-card").forEach(b=>b.classList.remove("selected"));
+          e.currentTarget.classList.add("selected");
+          document.getElementById("btnNext").disabled=!canContinue(scr);
+          scheduleSave();
+        }}, o.label);
+      }));
+    }
+    if (scr.type === "multiselect"){
+      const arr = Array.isArray(val) ? val.slice() : [];
+      const grid = h("div", {class:"option-grid narrow"}, scr.options.map(opt=>{
+        const selected = arr.includes(opt);
+        return h("button", {class:"opt-card" + (selected?" selected":""), onclick:(e)=>{
+          const set = new Set(Array.isArray(state.answers[scr.id]) ? state.answers[scr.id] : []);
+          if (set.has(opt)) set.delete(opt); else set.add(opt);
+          state.answers[scr.id] = Array.from(set);
+          e.currentTarget.classList.toggle("selected");
+          document.getElementById("btnNext").disabled=!canContinue(scr);
+          scheduleSave();
+        }}, opt);
+      }));
+      const wrap = h("div", null, grid);
+      if (scr.allowOther){
+        const otherVal = (state.answers[scr.id+"__other"]) || "";
+        wrap.appendChild(h("div", {class:"other-input"},
+          h("input", {class:"input", type:"text", placeholder:"Other (optional)", value:otherVal,
+            oninput:(e)=>{
+              state.answers[scr.id+"__other"] = e.target.value;
+              let list = (Array.isArray(state.answers[scr.id]) ? state.answers[scr.id] : []).filter(v => !String(v).startsWith("OTHER: "));
+              if (e.target.value.trim()) list.push("OTHER: " + e.target.value.trim());
+              state.answers[scr.id] = list;
+              document.getElementById("btnNext").disabled=!canContinue(scr);
+              scheduleSave();
+            }})
+        ));
+      }
+      return wrap;
+    }
+    if (scr.type === "scale"){
+      const cur = val !== undefined ? val : "5";
+      if (val === undefined) state.answers[scr.id] = cur;
+      const valDisplay = h("div", {class:"scale-val"}, cur);
+      const slider = h("input", {type:"range", min:scr.min, max:scr.max, value:cur,
+        oninput:(e)=>{ state.answers[scr.id]=e.target.value; valDisplay.textContent=e.target.value; scheduleSave(); }
+      });
+      return h("div", {class:"scale-wrap"},
+        h("div", {class:"scale-labels"}, h("span",null,scr.leftLabel), h("span",null,scr.rightLabel)),
+        slider, valDisplay
+      );
+    }
+    return h("div", null);
+  }
+
+  function rerenderConditionalFollowers(){
+    // conditional visibility is recomputed on navigation; nothing to do live.
+  }
+
+  function renderSpectrumSet(scr){
+    const items = scr.items.map(item=>{
+      const cur = state.answers[item.id] !== undefined ? state.answers[item.id] : "5";
+      if (state.answers[item.id] === undefined) state.answers[item.id] = cur;
+      const valDisplay = h("div", {class:"scale-val", style:{fontSize:"1.1rem", marginTop:".2rem"}}, cur);
+      const slider = h("input", {type:"range", min:1, max:10, value:cur,
+        oninput:(e)=>{ state.answers[item.id]=e.target.value; valDisplay.textContent=e.target.value; scheduleSave(); }
+      });
+      return h("div", {class:"spectrum-item"},
+        h("div", {class:"scale-labels"}, h("span",null,item.left), h("span",null,item.right)),
+        slider, valDisplay
+      );
+    });
+    return h("div", {class:"col"},
+      h("h2", {class:"prompt"}, scr.heading),
+      h("div", {style:{marginTop:"1.6rem"}}, items)
+    );
+  }
+
+  function renderSentence(scr){
+    const preview = h("div", {class:"sentence-preview"});
+    function refreshPreview(){
+      preview.innerHTML = "";
+      preview.appendChild(h("span", null, "I help "));
+      preview.appendChild(h("span", {class:"fill"}, state.answers["s09_sentence_who"] || "________"));
+      preview.appendChild(h("span", null, " who are struggling with "));
+      preview.appendChild(h("span", {class:"fill"}, state.answers["s09_sentence_problem"] || "________"));
+      preview.appendChild(h("span", null, " so they can "));
+      preview.appendChild(h("span", {class:"fill"}, state.answers["s09_sentence_transformation"] || "________"));
+      preview.appendChild(h("span", null, " through "));
+      preview.appendChild(h("span", {class:"fill"}, state.answers["s09_sentence_approach"] || "________"));
+      preview.appendChild(h("span", null, "."));
+    }
+    const blanks = scr.blanks.map(b=>{
+      return h("div", {class:"sentence-blank"},
+        h("label", null, b.label),
+        h("input", {class:"input", type:"text", placeholder:b.placeholder, value:state.answers[b.id]||"",
+          oninput:(e)=>{ state.answers[b.id]=e.target.value; document.getElementById("btnNext").disabled=!canContinue(scr); refreshPreview(); scheduleSave(); }
+        })
+      );
+    });
+    refreshPreview();
+    return h("div", {class:"col"},
+      h("h2", {class:"prompt"}, scr.heading),
+      h("div", {class:"body-copy", style:{marginTop:".6rem"}}, (scr.body||[]).map(p=>h("p",null,p))),
+      h("div", {style:{marginTop:"1.6rem", display:"flex", flexWrap:"wrap"}}, blanks),
+      preview
+    );
+  }
+
+  function ans(id){ return state.answers[id]; }
+
+  function renderReflection(scr){
+    if (scr.id === "s00_reflection"){
+      const birdDone = ans(scr.birdDoneFrom) === "YES";
+      const loveDone = ans(scr.loveDoneFrom) === "YES";
+      const kids = [ h("h2", {class:"prompt"}, scr.heading), h("p", {class:"helper"}, scr.intro) ];
+      if (birdDone){
+        const key = (ans(scr.birdFrom)||"").toLowerCase();
+        const info = window.BIRD_INFO[key];
+        if (info){
+          kids.push(h("div", {class:"card", style:{marginTop:"1.4rem"}},
+            h("h4", {style:{fontFamily:"var(--font-head)",color:"var(--red)"}}, info.name.toUpperCase() + " — " + info.tagline),
+            h("div", {class:"chip-row"}, info.tendencies.map(t=>h("span",{class:"chip"},t)))
+          ));
+        }
+      }
+      if (loveDone){
+        const raw = ans(scr.loveFrom)||"";
+        const key = raw.toLowerCase().replace(/\s+/g,"-");
+        const info = window.LOVE_LANG_INFO[key];
+        if (info){
+          kids.push(h("div", {class:"card", style:{marginTop:"1rem"}},
+            h("h4", {style:{fontFamily:"var(--font-head)",color:"var(--red)"}}, info.name.toUpperCase()),
+            h("p", null, info.tagline)
+          ));
+        }
+      }
+      const phrases = scr.phraseSources.map(id=>ans(id)).filter(Boolean).map(t=>truncate(t,110));
+      if (phrases.length){
+        kids.push(h("div", {class:"reflect-list"}, phrases.map(p=>h("div",{class:"reflect-row"}, h("div",{class:"rv"},"“"+p+"”")))));
+      }
+      kids.push(h("div", {style:{marginTop:"2rem"}}, h("button", {class:"btn btn-ghost", onclick:next}, scr.cta)));
+      return h("div", {class:"col"}, kids);
+    }
+
+    if (scr.template){
+      const rows = scr.template.map(t => h("div", {class:"reflect-row"},
+        h("div", {class:"rl"}, t.label), h("div", {class:"rv"}, truncate(ans(t.ref)||"—", 220))
+      ));
+      const kids = [ h("h2", {class:"prompt"}, scr.heading), h("div", {class:"reflect-list"}, rows) ];
+      if (scr.followupId){
+        kids.push(h("div", {class:"field-wrap"},
+          h("h2", {class:"prompt", style:{fontSize:"1.2rem", marginTop:"2rem"}}, scr.followupPrompt),
+          h("textarea", {class:"input", oninput:(e)=>{ state.answers[scr.followupId]=e.target.value; scheduleSave(); }}, ans(scr.followupId)||"")
+        ));
+      }
+      return h("div", {class:"col"}, kids);
+    }
+
+    if (scr.beforeFrom){
+      return h("div", {class:"col"},
+        h("h2", {class:"prompt"}, scr.heading),
+        h("div", {class:"flow-viz"},
+          h("div", {class:"flow-col"}, h("h4",null,"BEFORE"), h("p",null,truncate(ans(scr.beforeFrom)||"—",200))),
+          h("div", {class:"flow-arrow"}, "→"),
+          h("div", {class:"flow-col"}, h("h4",null,"YOUR COACHING"), h("p",null,truncate(ans(scr.middleFrom)||"—",200))),
+          h("div", {class:"flow-arrow"}, "→"),
+          h("div", {class:"flow-col"}, h("h4",null,"AFTER"), h("p",null,truncate(ans(scr.afterFrom)||"—",200)))
+        )
+      );
+    }
+    return h("div", {class:"col"}, "…");
+  }
+
+  /* ============================= checkpoint ============================= */
+  function renderCheckpoint(scr){
+    const wrap = h("div", {class:"screen-invert"}, h("div", {class:"col", id:"cpBody"}));
+    setTimeout(()=>runCheckpointIfNeeded(wrap.querySelector("#cpBody"), scr), 0);
+    return wrap;
+  }
+
+  function buildTranscript(maxBytes){
+    const parts = [];
+    for (const scr of FLOW){
+      if (!isVisible(scr)) continue;
+      if (scr.kind === "question"){
+        let v = state.answers[scr.id];
+        if (v === undefined || v === null || String(v).trim() === "") continue;
+        if (scr.type === "select_dynamic" && scr.optionsFrom){
+          const refId = scr.optionsFrom[Number(v)-1];
+          v = refId ? (state.answers[refId] || v) : v;
+        }
+        const text = Array.isArray(v) ? v.join(", ") : String(v);
+        parts.push({ q: scr.prompt, a: text });
+      } else if (scr.kind === "sentence"){
+        const filled = scr.blanks.every(b => isAnswered(b.id));
+        if (filled){
+          parts.push({ q: scr.heading, a: scr.blanks.map(b => b.label + " " + state.answers[b.id]).join(" / ") });
+        }
+      }
+    }
+    const overheadOf = p => byteLen("Q: " + p.q + "\nA: \n\n");
+    let total = parts.reduce((n,p)=> n + overheadOf(p) + byteLen(p.a), 0);
+    if (total <= maxBytes) {
+      return parts.map(p=>"Q: "+p.q+"\nA: "+p.a).join("\n\n");
+    }
+    const fixedOverhead = parts.reduce((n,p)=> n + overheadOf(p), 0);
+    const perAnswer = Math.max(50, Math.floor((maxBytes - fixedOverhead) / parts.length));
+    return parts.map(p => "Q: " + p.q + "\nA: " + truncate(p.a, perAnswer)).join("\n\n");
+  }
+
+  const GUARDRAILS = "You are a strategist and editor, not the source of the brand. Never fabricate credentials, experience, expertise, specialties, client results, qualifications, stories, personal beliefs or methodologies the trainer did not state. If evidence for something is weak or absent, write exactly: \"This area needs more exploration.\" Do not force a niche because it sounds marketable. Do not turn the trainer into a generic marketing stereotype or remove quirks and personality for polish. Specificity beats sounding impressive; honesty beats polish. Preserve the trainer's own phrases where they are strong rather than rewriting everything into generic marketing language.";
+
+  async function runCheckpointIfNeeded(container, scr){
+    if (!state.checkpoint){
+      container.appendChild(h("h2", {class:"prompt", style:{color:"#fff"}}, scr.heading));
+      const think = h("div", {class:"think"}, h("div",{class:"dot"}), h("span",null,"Reading through everything you told us…"));
+      container.appendChild(think);
+      if (!sampleFn){
+        container.appendChild(h("p", {class:"helper", style:{color:"#aaa", marginTop:"1rem"}}, "AI analysis isn't available in this view. You can continue on to build your blueprint manually with Blended leadership."));
+        container.appendChild(h("button", {class:"btn btn-ghost", style:{marginTop:"1.5rem"}, onclick:beginSynthesis}, "CONTINUE ANYWAY"));
+        return;
+      }
+      try {
+        const transcript = buildTranscript(56000);
+        const fieldList = scr.fields.map(f=>`"${f.key}"`).join(", ");
+        const prompt = GUARDRAILS + "\n\nBelow is one personal trainer's raw answers to a brand-discovery interview, as Q/A pairs. Analyze ALL of it together — do not summarize question by question. Look for repeated themes, natural energy (which people/problems energize them), personal connection between their story and who they want to help, the client pattern, the problem pattern, the emotional outcome they want beyond physical results, the transformation, their differentiator, their natural coaching-style personality fit, and the clearest market opportunity (do not manufacture a trendy niche).\n\nReply with ONLY a JSON object with exactly these string keys: " + fieldList + ". Each value should be 1-3 sentences written in second person (\"you\"), grounded only in what they actually said.\n\nTRANSCRIPT:\n" + transcript;
+        const result = await sampleFn.json(prompt, { modelTier: "default", cache: false, onText: ()=>{ think.querySelector("span").textContent = "Connecting the dots…"; } });
+        state.checkpoint = result;
+        scheduleSave();
+        renderCheckpointResult(container, scr);
+      } catch(e){
+        container.innerHTML = "";
+        container.appendChild(h("h2", {class:"prompt", style:{color:"#fff"}}, scr.heading));
+        container.appendChild(h("p", {class:"helper", style:{color:"#e8a"}}, "We couldn't reach Claude just now (" + (e.code||"error") + "). You can try again."));
+        container.appendChild(h("button", {class:"btn btn-ghost", style:{marginTop:"1.2rem"}, onclick:()=>{ state.checkpoint=null; render(); }}, "TRY AGAIN"));
+      }
+      return;
+    }
+    renderCheckpointResult(container, scr);
+  }
+
+  function renderCheckpointResult(container, scr){
+    container.innerHTML = "";
+    container.appendChild(h("h2", {class:"prompt", style:{color:"#fff"}}, scr.heading));
+    const editable = state.checkpointDecision !== "final";
+    scr.fields.forEach(f=>{
+      const value = (state.checkpoint && state.checkpoint[f.key]) || "";
+      container.appendChild(h("div", {class:"cp-field"},
+        h("label", null, f.label),
+        h("textarea", {oninput:(e)=>{ state.checkpoint[f.key]=e.target.value; scheduleSave(); }, disabled: !editable}, value)
+      ));
+    });
+    container.appendChild(h("h2", {class:"prompt", style:{color:"#fff", fontSize:"1.2rem", marginTop:"2.2rem"}}, scr.question));
+    const decisions = h("div", {class:"decision-row"});
+    scr.options.forEach((opt, idx)=>{
+      decisions.appendChild(h("button", {class:"decision-btn", onclick:()=>handleCheckpointDecision(idx)}, opt));
+    });
+    container.appendChild(decisions);
+
+    if (state.checkpointDecision === "no"){
+      container.appendChild(renderJumpList());
+    }
+  }
+
+  function handleCheckpointDecision(idx){
+    state.checkpointDecision = idx === 0 ? "yes" : idx === 1 ? "mostly" : "no";
+    scheduleSave();
+    if (state.checkpointDecision === "no"){ render(); return; }
+    next();
+  }
+
+  function renderJumpList(){
+    const box = h("div", {class:"card", style:{marginTop:"1.5rem", background:"#161616", border:"1px solid #2c2c2c"}});
+    box.appendChild(h("p", {style:{color:"#ddd", marginBottom:"1rem"}}, "No problem — jump back into any section and update your answers. Your other answers are kept."));
+    D.sections.forEach(s=>{
+      box.appendChild(h("button", {class:"btn btn-secondary", style:{color:"#fff", borderColor:"#3a3a3a", display:"block", width:"100%", textAlign:"left", marginBottom:".5rem"},
+        onclick:()=>{ state.checkpointDecision=null; goTo(s.screens[0].id); }
+      }, s.number + " — " + s.title));
+    });
+    return box;
+  }
+
+  /* ============================= synthesis ============================= */
+  const BLUEPRINT_SHAPE_HINT = `{
+"thisIsYou": "2-4 paragraphs, second person, personal and specific",
+"glance": {"emergingSpecialty":"","coreBrandIdea":"","whoIHelp":"","problemIOwn":"","whatClientWants":"","transformation":"","emotionalOutcome":"","myApproach":""},
+"idealClient": {"whoTheyAre":"","currentReality":"","strugglingWith":"","whatTheyWant":"","alreadyTried":"","whyFellShort":"","frustratedBy":"","afraidOf":"","uncomfortableAdmitting":"","tellingFriendsFamily":"","searchingFor":"","whatMakesThemSeekHelp":"","whatTheyThinkTheyNeed":"","whatIBelieveTheyNeed":"","whatCouldStopThem":"","whatTheyNeedToHearFirst":""},
+"transformationSection": {"physical":"","emotional":"","lifestyle":"","dreamSentence":""},
+"positioning": {"spaceICanOwn":"","problemIOwn":"","methodIUse":"","whyDifferent":"","whyStoryMakesSense":"","whyMattersToClient":""},
+"howIConnect": {"communicationStyle":"","howIBuildTrust":"","howIEncourage":"","howIGiveFeedback":"","whatClientsExpect":"","personalitiesThatConnect":"","personalitiesNeedDifferent":""},
+"coachingPersonality": {"spectrumSummary":"one sentence describing where they land on the 7 spectrums","feelsLike":"","clientsWhoThrive":"","clientsWhoNeedDifferent":""},
+"myStory": {"origin":"","turningPoint":"","whatILearned":"","whyICoach":"","whyThisClientMatters":""},
+"brandBeliefs": [{"belief":"","whatItMeans":"","howItShowsUp":""}],
+"messaging": {"coreMessage":"","valueProposition":"","referralSentence":"","workWithMeIf":"","oneLineIntro":"","messagesToRepeat":["",""],"messagesToAvoid":["",""]},
+"contentStrategy": [{"pillar":"","whyItMatters":"","whatICanTeach":"","questionsClientAsks":"","contentIdeas":["","","","",""]}],
+"brandVoice": {"traits":["","",""],"soundLikeThis":["","",""],"notLikeThis":["","",""]},
+"buildingToward": {"becomeKnownFor":"","skillsToDevelop":"","areasToStudy":"","clientsWantMore":"","futureServices":"","longTermDirection":""},
+"accountability": {"chosenToBeKnownFor":"","needToBecomeGoodAt":"","needToLearnNext":"","willConsistentlyTeach":"","behavioursThatSupport":"","whatCouldUndermine":"","next12Months":""},
+"wordsWorthKeeping": ["", "", "", "", ""],
+"areasToExplore": ["", ""],
+"workingBrandStatement": {"who":"","problem":"","transformation":"","approach":"","full":"I help ___ who are struggling with ___ so they can ___ through ___."}
+}`;
+
+  function beginSynthesis(){
+    state.phase = "synthesizing";
+    document.getElementById("appbar").hidden = true;
+    document.getElementById("navbar").hidden = true;
+    runFullSynthesis(false);
+  }
+
+  async function runFullSynthesis(force){
+    const stage = document.getElementById("stage");
+    stage.innerHTML = "";
+    const wrap = h("div", {class:"screen-invert"});
+    stage.appendChild(wrap);
+    const col = h("div", {class:"col"},
+      h("span", {class:"eyebrow"}, "BRAND SYNTHESIS"),
+      h("h1", {class:"display"}, D.synthesisIntro.heading),
+      h("div", {class:"think", id:"synthThink"}, h("div",{class:"dot"}), h("span",null,"Thinking…"))
+    );
+    wrap.appendChild(col);
+    document.getElementById("appbar").hidden = true;
+    document.getElementById("navbar").hidden = true;
+
+    if (!sampleFn){
+      col.appendChild(h("p", {class:"helper", style:{color:"#e8a", marginTop:"1rem"}}, "AI synthesis isn't available in this view right now."));
+      return;
+    }
+    try {
+      const transcript = buildTranscript(52000);
+      const cpSummary = state.checkpoint ? ("\n\nEARLIER PATTERN READ (confirmed by the trainer):\n" + JSON.stringify(state.checkpoint)) : "";
+      const prompt = GUARDRAILS + "\n\nUsing the complete discovery transcript below, produce a full Personal Trainer Brand Blueprint for Blended Athletics. Identify contradictions honestly rather than smoothing them over (put them in areasToExplore, phrased as discussion prompts for Blended leadership, and don't resolve them yourself). Pull 5-10 short, strong original phrases into wordsWorthKeeping, quoted close to how the trainer wrote them.\n\nReply with ONLY a JSON object matching exactly this shape (same keys, fill in real content, arrays can have more items where useful):\n" + BLUEPRINT_SHAPE_HINT + "\n\nTRANSCRIPT:\n" + transcript + cpSummary;
+      const result = await sampleFn.json(prompt, { modelTier: "complex", cache: force ? false : { gcTime: 600000 }, onText: ()=>{ document.getElementById("synthThink").querySelector("span").textContent = "Writing your blueprint…"; } });
+      state.blueprint = result;
+      state.approved = false;
+      scheduleSave();
+      enterReview();
+    } catch(e){
+      col.appendChild(h("p", {class:"helper", style:{color:"#e8a", marginTop:"1rem"}}, "Something went wrong building your blueprint (" + (e.code||"error") + ")."));
+      col.appendChild(h("button", {class:"btn btn-ghost", style:{marginTop:"1.2rem"}, onclick:()=>runFullSynthesis(true)}, "TRY AGAIN"));
+    }
+  }
+
+  /* ============================= review ============================= */
+  function enterReview(){
+    state.phase = "review";
+    document.getElementById("appbar").hidden = true;
+    document.getElementById("navbar").hidden = true;
+    renderReview();
+  }
+
+  const BP_SECTIONS = [
+    { key:"glance", title:"01 · Brand at a Glance" },
+    { key:"idealClient", title:"02 · My Ideal Client" },
+    { key:"transformationSection", title:"03 · The Transformation" },
+    { key:"positioning", title:"04 · Positioning" },
+    { key:"howIConnect", title:"05 · How I Connect" },
+    { key:"coachingPersonality", title:"06 · My Coaching Personality" },
+    { key:"myStory", title:"07 · My Story" },
+    { key:"brandBeliefs", title:"08 · My Brand Beliefs" },
+    { key:"messaging", title:"09 · My Messaging" },
+    { key:"contentStrategy", title:"10 · Content Strategy" },
+    { key:"brandVoice", title:"11 · Brand Voice" },
+    { key:"buildingToward", title:"12 · What I'm Building Toward" },
+    { key:"accountability", title:"13 · Brand Accountability" },
+    { key:"wordsWorthKeeping", title:"14 · Words Worth Keeping" },
+    { key:"areasToExplore", title:"15 · Areas to Explore with Blended" },
+    { key:"workingBrandStatement", title:"16 · Working Brand Statement" }
+  ];
+
+  function renderBpValue(v){
+    if (v == null) return h("p", {class:"bv"}, "—");
+    if (typeof v === "string") return h("p", {class:"bv"}, v);
+    if (Array.isArray(v)){
+      if (v.length && typeof v[0] === "object"){
+        return h("div", null, v.map(obj => h("div", {class:"card", style:{marginBottom:".8rem"}},
+          Object.entries(obj).map(([k,val])=> h("div", {class:"bp-block"}, h("div",{class:"bl"},humanize(k)), h("div",{class:"bv"},String(val||"—"))))
+        )));
+      }
+      return h("ul", {class:"bp-list"}, v.map(item=>h("li",null,String(item))));
+    }
+    if (typeof v === "object"){
+      return h("div", null, Object.entries(v).map(([k,val])=> h("div", {class:"bp-block"}, h("div",{class:"bl"},humanize(k)), renderBpValue(val))));
+    }
+    return h("p", {class:"bv"}, String(v));
+  }
+
+  function renderReview(){
+    const stage = document.getElementById("stage");
+    stage.innerHTML = "";
+    const bp = state.blueprint || {};
+    const col = h("div", {class:"col-wide", id:"reviewRoot"});
+    stage.appendChild(col);
+
+    col.appendChild(h("div", {class:"blueprint-cover"},
+      h("span", {class:"eyebrow"}, "BLENDED ATHLETICS · PERSONAL TRAINER"),
+      h("h1", {class:"display"}, "BRAND BLUEPRINT"),
+      h("h2", {class:"display", style:{color:"var(--accent)", marginTop:".3rem"}}, state.trainerName || ""),
+      h("p", {class:"helper"}, fmtDate(new Date()) + (state.approved ? " · APPROVED" : " · DRAFT"))
+    ));
+
+    if (bp.thisIsYou){
+      col.appendChild(h("div", {class:"bp-section"},
+        h("h3", null, "THIS IS YOU"),
+        h("div", {class:"body-copy"}, String(bp.thisIsYou).split("\n").filter(Boolean).map(p=>h("p",{style:{marginBottom:"1rem"}},p)))
+      ));
+    }
+
+    BP_SECTIONS.forEach(s=>{
+      if (bp[s.key] === undefined) return;
+      col.appendChild(h("div", {class:"bp-section"}, h("h3", null, s.title), renderBpValue(bp[s.key])));
+    });
+
+    if (state.readOnly){
+      const actions = h("div", {class:"review-actions"});
+      actions.appendChild(h("p", {class:"helper", style:{margin:0}}, "Viewing as Blended leadership — read only."));
+      if (state.approved) actions.appendChild(h("button", {class:"btn btn-primary", onclick:exportPdf}, "DOWNLOAD PDF"));
+      actions.appendChild(h("button", {class:"btn btn-ghost", onclick:openLeadership}, "← BACK TO ALL TRAINERS"));
+      col.appendChild(actions);
+    } else if (!state.approved){
+      const actions = h("div", {class:"review-actions"});
+      actions.appendChild(h("button", {class:"btn btn-secondary", onclick:()=>{
+        state.phase = "questions";
+        document.getElementById("appbar").hidden = false;
+        document.getElementById("navbar").hidden = false;
+        goTo(D.sections[0].screens[0].id);
+      }}, "EDIT MY ANSWERS"));
+      actions.appendChild(h("button", {class:"btn btn-secondary", onclick:toggleRefinePanel}, "REFINE A SECTION"));
+      actions.appendChild(h("button", {class:"btn btn-secondary", onclick:()=>runFullSynthesis(true)}, "REBUILD MY BLUEPRINT"));
+      actions.appendChild(h("button", {class:"btn btn-primary", onclick:approveBlueprint}, "APPROVE MY BLUEPRINT"));
+      col.appendChild(actions);
+
+      const panel = h("div", {class:"refine-panel", id:"refinePanel"});
+      const select = h("select", {class:"input"}, BP_SECTIONS.map(s=>h("option",{value:s.key},s.title)));
+      const note = h("textarea", {class:"input", placeholder:"What would you change about this section?", style:{marginTop:".8rem", minHeight:"90px"}});
+      const goBtn = h("button", {class:"btn btn-primary", style:{marginTop:".8rem"}, onclick:(e)=>refineSection(select.value, note.value, e.currentTarget)}, "REFINE THIS SECTION");
+      panel.appendChild(select); panel.appendChild(note); panel.appendChild(goBtn);
+      col.appendChild(panel);
+    } else {
+      const actions = h("div", {class:"review-actions"});
+      actions.appendChild(h("button", {class:"btn btn-primary", onclick:exportPdf}, "DOWNLOAD MY BRAND BLUEPRINT"));
+      col.appendChild(actions);
+    }
+  }
+
+  function toggleRefinePanel(){ document.getElementById("refinePanel").classList.toggle("open"); }
+
+  async function refineSection(key, note, btn){
+    if (!note || !note.trim() || !sampleFn) return;
+    btn.disabled = true; btn.textContent = "REFINING…";
+    try {
+      const current = JSON.stringify(state.blueprint[key]);
+      const prompt = GUARDRAILS + "\n\nCurrent content for the blueprint section \"" + key + "\":\n" + current + "\n\nThe trainer's feedback on this section: \"" + note.trim() + "\"\n\nRewrite ONLY this section, honoring the feedback, in the exact same JSON shape as the current content (same keys/structure). Reply with ONLY the JSON value for this section, nothing else.";
+      const result = await sampleFn.json(prompt, { modelTier: "default", cache: false });
+      state.blueprint[key] = result;
+      scheduleSave();
+      renderReview();
+    } catch(e){
+      btn.disabled = false; btn.textContent = "REFINE THIS SECTION";
+      alert("Couldn't refine that section right now. Try again in a moment.");
+    }
+  }
+
+  function approveBlueprint(){
+    state.approved = true;
+    state.checkpointDecision = "final";
+    scheduleSave();
+    renderReview();
+  }
+
+  /* ============================= PDF export ============================= */
+  async function exportPdf(){
+    if (!window.jspdf){ alert("PDF library didn't load — try refreshing."); return; }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit:"pt", format:"letter" });
+    const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight();
+    const margin = 56, colW = W - margin*2;
+    let y = margin, page = 1;
+    const RED = [244,24,35], BLACK=[17,20,23], GREY=[110,116,118], YELLOW=[242,205,83];
+
+    function footer(){
+      doc.setFontSize(8); doc.setTextColor(...GREY); doc.setFont("helvetica","normal");
+      doc.text("BLENDED ATHLETICS — PERSONAL TRAINER BRAND BLUEPRINT", margin, H-30);
+      doc.text(String(page), W-margin, H-30, {align:"right"});
+    }
+    function newPage(){ footer(); doc.addPage(); page++; y = margin; }
+    function ensure(h){ if (y + h > H - margin - 20) newPage(); }
+    function heading(text, size){
+      ensure(size+16);
+      doc.setFont("helvetica","bold"); doc.setFontSize(size); doc.setTextColor(...RED);
+      doc.text(text, margin, y); y += size*0.9;
+      doc.setDrawColor(...RED); doc.setLineWidth(1.2); doc.line(margin, y, margin+60, y); y += 18;
+    }
+    function label(text){
+      ensure(14);
+      doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(...GREY);
+      doc.text(text.toUpperCase(), margin, y); y += 13;
+    }
+    function paragraph(text){
+      if (!text) return;
+      doc.setFont("helvetica","normal"); doc.setFontSize(10.5); doc.setTextColor(...BLACK);
+      const lines = doc.splitTextToSize(String(text), colW);
+      ensure(lines.length*14 + 10);
+      doc.text(lines, margin, y); y += lines.length*14 + 10;
+    }
+    function bullet(text){
+      doc.setFont("helvetica","normal"); doc.setFontSize(10.5); doc.setTextColor(...BLACK);
+      const lines = doc.splitTextToSize("• " + String(text), colW-10);
+      ensure(lines.length*14 + 4);
+      doc.text(lines, margin+6, y); y += lines.length*14 + 4;
+    }
+    function quoteBox(text){
+      doc.setFont("helvetica","bolditalic"); doc.setFontSize(12);
+      const lines = doc.splitTextToSize(String(text), colW-40);
+      const boxH = lines.length*16 + 28;
+      ensure(boxH+14);
+      doc.setFillColor(...YELLOW); doc.rect(margin, y, colW, boxH, "F");
+      doc.setTextColor(...BLACK);
+      doc.text(lines, margin+20, y+24);
+      y += boxH + 18;
+    }
+
+    // Cover
+    doc.setFillColor(...BLACK); doc.rect(0,0,W,H,"F");
+    doc.setFont("helvetica","bold"); doc.setFontSize(13); doc.setTextColor(...RED);
+    doc.text("BLENDED ATHLETICS", margin, 180);
+    doc.setFontSize(30); doc.setTextColor(255,255,255);
+    doc.text("PERSONAL TRAINER", margin, 230);
+    doc.text("BRAND BLUEPRINT", margin, 268);
+    doc.setFontSize(20); doc.setTextColor(...RED);
+    doc.text(state.trainerName || "", margin, 320);
+    doc.setFont("helvetica","normal"); doc.setFontSize(11); doc.setTextColor(200,200,200);
+    doc.text("Find your people. Define your difference. Build something that's yours.", margin, 360);
+    doc.text(fmtDate(new Date()), margin, 382);
+    footer(); doc.addPage(); page++; y = margin;
+
+    const bp = state.blueprint || {};
+    if (bp.thisIsYou){
+      heading("THIS IS YOU", 18);
+      String(bp.thisIsYou).split("\n").filter(Boolean).forEach(paragraph);
+    }
+
+    function renderValuePdf(v){
+      if (v == null) return;
+      if (typeof v === "string"){ paragraph(v); return; }
+      if (Array.isArray(v)){
+        if (v.length && typeof v[0] === "object"){
+          v.forEach(obj=>{
+            Object.entries(obj).forEach(([k,val])=>{ label(humanize(k)); paragraph(val); });
+            y += 6;
+          });
+        } else {
+          v.forEach(bullet);
+        }
+        return;
+      }
+      if (typeof v === "object"){
+        Object.entries(v).forEach(([k,val])=>{ label(humanize(k)); renderValuePdf(val); });
+      }
+    }
+
+    BP_SECTIONS.forEach(s=>{
+      if (bp[s.key] === undefined) return;
+      newPage();
+      heading(s.title.toUpperCase(), 16);
+      if (s.key === "workingBrandStatement" && bp[s.key] && bp[s.key].full){
+        quoteBox(bp[s.key].full);
+        const rest = Object.assign({}, bp[s.key]); delete rest.full;
+        renderValuePdf(rest);
+      } else {
+        renderValuePdf(bp[s.key]);
+      }
+    });
+    footer();
+
+    const blob = doc.output("blob");
+    const filename = "Blended-Athletics-Brand-Blueprint-" + slugify(state.trainerName) + ".pdf";
+    if (downloads){
+      try { await downloads.save({ filename, data: blob }); }
+      catch(e){ /* declined or unavailable — nothing more to do */ }
+    } else {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a"); a.href = url; a.download = filename; a.click();
+    }
+  }
+
+  /* ============================= leadership (read-only) ============================= */
+  async function openLeadership(){
+    if (!db){ alert("Leadership view needs the live workspace database, which isn't available in this preview."); return; }
+    document.getElementById("appbar").hidden = true;
+    document.getElementById("navbar").hidden = true;
+    const stage = document.getElementById("stage");
+    stage.innerHTML = "";
+    const col = h("div", {class:"col-wide"},
+      h("span", {class:"eyebrow"}, "BLENDED LEADERSHIP"),
+      h("h1", {class:"display"}, "ALL TRAINER BLUEPRINTS"),
+      h("p", {class:"helper"}, "Loading…")
+    );
+    stage.appendChild(col);
+    try {
+      const snap = await db.collection("trainers").orderBy("updatedAt","desc").limit(200).get();
+      col.removeChild(col.lastChild);
+      if (snap.empty){
+        col.appendChild(h("p", {class:"helper"}, "No trainers have started their discovery yet."));
+      } else {
+        const table = h("table", {class:"lead-table"},
+          h("thead", null, h("tr", null, h("th",null,"Trainer"), h("th",null,"Email"), h("th",null,"Team"), h("th",null,"Status"), h("th",null,"Updated"), h("th",null,""))),
+          h("tbody", null, snap.docs.map(d=>{
+            const r = d.data();
+            return h("tr", null,
+              h("td", null, r.trainerName || d.id),
+              h("td", null, r.trainerEmail ? h("a", {href:"mailto:"+r.trainerEmail}, r.trainerEmail) : "—"),
+              h("td", null, r.isTeamMember ? h("span", {class:"status-badge approved"}, "TEAM") : "—"),
+              h("td", null, h("span", {class:"status-badge" + (r.approved?" approved":"")}, (r.status||"in_progress").toUpperCase())),
+              h("td", null, fmtDate(r.updatedAt)),
+              h("td", null, h("button", {class:"btn btn-secondary", onclick:()=>{ loadForLeadershipView(r); }}, "VIEW"))
+            );
+          }))
+        );
+        col.appendChild(table);
+      }
+    } catch(e){
+      col.removeChild(col.lastChild);
+      col.appendChild(h("p", {class:"helper"}, "Couldn't load the trainer list right now."));
+    }
+    col.appendChild(h("button", {class:"btn btn-ghost", style:{marginTop:"1.6rem"}, onclick:()=>{ state.currentId="welcome"; render(); }}, "← BACK"));
+  }
+
+  function loadForLeadershipView(doc){
+    state.trainerName = doc.trainerName; state.trainerEmail = doc.trainerEmail || ""; state.isTeamMember = !!doc.isTeamMember;
+    state.slug = doc.slug; state.answers = doc.answers||{};
+    state.blueprint = doc.blueprint; state.approved = !!doc.approved; state.readOnly = true;
+    if (doc.blueprint){ enterReview(); } else { renderRawAnswersView(doc); }
+  }
+
+  function evalCondAgainst(cond, answers){
+    if (!cond) return true;
+    const v = answers[cond.questionId];
+    if (cond.op === "equals") return v === cond.value;
+    if (cond.op === "filled") return v !== undefined && v !== null && (Array.isArray(v) ? v.length>0 : String(v).trim().length>0);
+    return true;
+  }
+
+  function formatAnswersForDisplay(answers){
+    const items = [];
+    for (const scr of FLOW){
+      if (scr.kind === "question"){
+        if (scr.conditional && !evalCondAgainst(scr.conditional, answers)) continue;
+        let v = answers[scr.id];
+        if (v === undefined || v === null || String(v).trim() === "") continue;
+        if (scr.type === "select_dynamic" && scr.optionsFrom){
+          const refId = scr.optionsFrom[Number(v)-1];
+          v = refId ? (answers[refId] || v) : v;
+        }
+        items.push({ section: scr.section, q: scr.prompt, a: Array.isArray(v) ? v.join(", ") : String(v) });
+      } else if (scr.kind === "sentence"){
+        if (scr.blanks.every(b => answers[b.id])){
+          items.push({ section: "09", q: scr.heading, a: scr.blanks.map(b => b.label + " " + answers[b.id]).join(" / ") });
+        }
+      }
+    }
+    return items;
+  }
+
+  function renderRawAnswersView(doc){
+    document.getElementById("appbar").hidden = true;
+    document.getElementById("navbar").hidden = true;
+    const stage = document.getElementById("stage");
+    stage.innerHTML = "";
+    const items = formatAnswersForDisplay(doc.answers || {});
+    const col = h("div", {class:"col-wide"},
+      h("span", {class:"eyebrow"}, "BLENDED LEADERSHIP · IN PROGRESS"),
+      h("h1", {class:"display"}, doc.trainerName || "Trainer"),
+      h("p", {class:"helper"}, (doc.trainerEmail ? doc.trainerEmail + " · " : "") + (doc.isTeamMember ? "Team member · " : "") + "Status: " + (doc.status||"in_progress").toUpperCase() + " · Updated " + fmtDate(doc.updatedAt))
+    );
+    if (!items.length){
+      col.appendChild(h("p", {class:"helper", style:{marginTop:"1.5rem"}}, "No answers recorded yet."));
+    } else {
+      const list = h("div", {class:"reflect-list", style:{marginTop:"1.8rem"}});
+      items.forEach(it => list.appendChild(h("div", {class:"reflect-row"},
+        h("div", {class:"rl"}, "SECTION " + it.section + " · " + it.q),
+        h("div", {class:"rv"}, it.a)
+      )));
+      col.appendChild(list);
+    }
+    const actions = h("div", {class:"review-actions"});
+    actions.appendChild(h("button", {class:"btn btn-ghost", onclick:openLeadership}, "← BACK TO ALL TRAINERS"));
+    col.appendChild(actions);
+    stage.appendChild(col);
+  }
+
+  /* ============================= boot ============================= */
+  async function boot(){
+    await initCapabilities();
+    render();
+  }
+
+  boot();
+})();
+</script>
